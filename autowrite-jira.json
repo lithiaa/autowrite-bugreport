@@ -1,0 +1,2815 @@
+{
+  "name": "Auto Bug Reporting (Jira)",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "const req = items[0].json;\nconst input = req.body || {};\n\nreturn [\n  {\n    json: {\n      caseId: input.testCaseId ?? \"Unknown Test Case\",\n      status: input.status ?? \"UNKNOWN\",\n      message: input.message ?? \"\",\n      teststeps: input.executed_steps\n        .map((step, index) => `${index + 1}. ${step}`)\n        .join('\\n') ?? \"\",\n      screenshot: input.screenshot_base64 ?? \"\",\n      timestamp: input.timestamp ?? new Date().toISOString(),\n      url: input.url ?? \"\",\n\n      steps: input.message \n        ? input.message.match(/Step \\d+:.+/g) || [] \n        : []\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4576,
+        608
+      ],
+      "id": "fbe0995d-d122-4740-81e0-7086ed6dbe66",
+      "name": "Parse Input"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "bug-report",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -4752,
+        608
+      ],
+      "id": "829fa44f-1034-4900-8bdb-17e7e59fa3af",
+      "name": "Webhook Katalon",
+      "webhookId": "9e2f7bdb-a98d-4d0d-9af4-af67c56490c3"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1HVzuBcx2vXSzRE-aXE2OCYmsvOr9km62lgT3mRoc7Xg",
+          "mode": "list",
+          "cachedResultName": "BugReport",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HVzuBcx2vXSzRE-aXE2OCYmsvOr9km62lgT3mRoc7Xg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HVzuBcx2vXSzRE-aXE2OCYmsvOr9km62lgT3mRoc7Xg/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Bug Title": "={{ $json.bug_title }}",
+            "Timestamp": "{{$now}}",
+            "Expected Result": "={{$json.expected_result}} ",
+            "Actual Result": "={{$json.actual_result}}",
+            "Log Summary": "={{$json.log_summary}} ",
+            "Root Cause Guess": "={{$json.root_cause_guess}} ",
+            "Screenshot Path": "={{$json.screenshot_path}} ",
+            "Raw Log": "{{$json.log}}",
+            "Severity": "={{ $json.severity }}",
+            "Steps to Reproduce": "={{ $json.steps_to_reproduce }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Bug Title",
+              "displayName": "Bug Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Severity",
+              "displayName": "Severity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Steps to Reproduce",
+              "displayName": "Steps to Reproduce",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Expected Result",
+              "displayName": "Expected Result",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Actual Result",
+              "displayName": "Actual Result",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Root Cause Guess",
+              "displayName": "Root Cause Guess",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Screenshot Path",
+              "displayName": "Screenshot Path",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Log Summary",
+              "displayName": "Log Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Raw Log",
+              "displayName": "Raw Log",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -5776,
+        3056
+      ],
+      "id": "94499a6f-c890-44d8-a1aa-5d11683fac01",
+      "name": "Append row in sheet",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openRouterApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "HTTP-Referer",
+              "value": "https://skr1ps1.lithiaproject.com"
+            },
+            {
+              "name": "X-Title",
+              "value": "n8n-automation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4.1-mini\",\n  \"max_tokens\": 800,\n  \"temperature\": 0.1,\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are an AI that converts automation testing logs into a structured bug report.\\n\\nRules:\\n1. Return valid JSON only.\\n2. Follow the JSON schema exactly.\\n3. Do NOT add explanation or text outside the JSON.\\n\\nJSON Schema:\\n{\\n  \\\"bug_title\\\": \\\"\\\",\\n  \\\"severity\\\": \\\"\\\",\\n  \\\"steps_to_reproduce\\\": [],\\n  \\\"expected_result\\\": \\\"\\\",\\n  \\\"actual_result\\\": \\\"\\\",\\n  \\\"root_cause_guess\\\": \\\"\\\",\\n  \\\"screenshot_path\\\": \\\"\\\",\\n  \\\"log_summary\\\": \\\"\\\"\\n}\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Create a bug report from this automation test log:\\n\\n{{ $json.body.message }}\"\n    }\n  ]\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -5120,
+        3200
+      ],
+      "id": "7be554da-2082-4826-b2f0-1ec47787b140",
+      "name": "HTTP Request",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const base64String = $('Parse Input').first().json.screenshot\n\nif (base64String) {\n  return [\n    {\n      json: $input.first().json,\n      binary: {\n        data: {\n          data: base64String,\n          mimeType: 'image/png',\n          fileName: $('Parse Output AI').first().json.ticket_title.issue_title + '.png'\n        }\n      }\n    }\n  ];\n}\n\nreturn [$input.first()];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1968,
+        944
+      ],
+      "id": "9428f2f9-3832-4a28-aa6d-eeee4e40922f",
+      "name": "Screenshot Issue"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Parse Output AI').item.json.priority }}",
+                    "rightValue": "Highest",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "e04362fc-c797-4bdb-ac84-55428d02269f"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "dab1469f-82c3-490c-ba49-65e68fb90c89",
+                    "leftValue": "={{ $('Parse Output AI').item.json.priority }}",
+                    "rightValue": "High",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "1a46ad16-7a02-4e14-9842-78e8ddece313",
+                    "leftValue": "={{ $('Parse Output AI').item.json.priority }}",
+                    "rightValue": "Medium",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "3b855e94-89c4-4146-a9cc-2de8f2891a33",
+                    "leftValue": "={{ $('Parse Output AI').item.json.priority }}",
+                    "rightValue": "Low",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "22135f6e-fe0c-41d6-9e98-4ca6a07cedd5",
+                    "leftValue": "={{ $('Parse Output AI').item.json.priority }}",
+                    "rightValue": "Lowest",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -1376,
+        896
+      ],
+      "id": "725c63a3-48f4-45d0-b7a0-84f4e1bfb56b",
+      "name": "Switch Priority"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "issueKey": "={{ $('Create an issue').item.json.key }}",
+        "updateFields": {
+          "priority": {
+            "__rl": true,
+            "value": "1",
+            "mode": "list",
+            "cachedResultName": "Highest"
+          }
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        -1056,
+        608
+      ],
+      "id": "0f399c36-763e-413a-9fcb-4446a67ffa5c",
+      "name": "Add Priority (Highest)",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "issueKey": "={{ $('Create an issue').item.json.key }}",
+        "updateFields": {
+          "priority": {
+            "__rl": true,
+            "value": "2",
+            "mode": "list",
+            "cachedResultName": "High"
+          }
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        -1056,
+        736
+      ],
+      "id": "99b6699e-0749-4f91-bb0c-e8ab9be97384",
+      "name": "Add Priority (High)",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "issueKey": "={{ $('Create an issue').item.json.key }}",
+        "updateFields": {
+          "priority": {
+            "__rl": true,
+            "value": "3",
+            "mode": "list",
+            "cachedResultName": "Medium"
+          }
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        -1056,
+        864
+      ],
+      "id": "c4432670-2a35-4c38-a291-fe3f6a2d0828",
+      "name": "Add Priority (Medium)",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "issueKey": "={{ $('Create an issue').item.json.key }}",
+        "updateFields": {
+          "priority": {
+            "__rl": true,
+            "value": "4",
+            "mode": "list",
+            "cachedResultName": "Low"
+          }
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        -1056,
+        992
+      ],
+      "id": "ec081f52-800e-4e93-a3c1-8dbc9d69fb2b",
+      "name": "Add Priority (Low)",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "issueKey": "={{ $('Create an issue').item.json.key }}",
+        "updateFields": {
+          "priority": {
+            "__rl": true,
+            "value": "5",
+            "mode": "list",
+            "cachedResultName": "Lowest"
+          }
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        -1056,
+        1120
+      ],
+      "id": "62d722b1-9286-4dba-a89a-f15b707f44b7",
+      "name": "Add Priority (Lowest)",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Parse Output AI').item.json.severity }}",
+                    "rightValue": "Critical",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "e04362fc-c797-4bdb-ac84-55428d02269f"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "dab1469f-82c3-490c-ba49-65e68fb90c89",
+                    "leftValue": "={{ $('Parse Output AI').item.json.severity }}",
+                    "rightValue": "Major",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "1a46ad16-7a02-4e14-9842-78e8ddece313",
+                    "leftValue": "={{ $('Parse Output AI').item.json.severity }}",
+                    "rightValue": "Medium",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "3b855e94-89c4-4146-a9cc-2de8f2891a33",
+                    "leftValue": "={{ $('Parse Output AI').item.json.severity }}",
+                    "rightValue": "Normal",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "22135f6e-fe0c-41d6-9e98-4ca6a07cedd5",
+                    "leftValue": "={{ $('Parse Output AI').item.json.severity }}",
+                    "rightValue": "Minor",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -768,
+        816
+      ],
+      "id": "48d16481-7609-40b6-bc95-e8f03214a70b",
+      "name": "Switch Severity"
+    },
+    {
+      "parameters": {
+        "resource": "issueAttachment",
+        "issueKey": "={{ $json.key }}"
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        -1744,
+        944
+      ],
+      "id": "f7b65b64-ccba-4a3c-9b7a-1f487616453f",
+      "name": "Add Attachment/Evidence",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "options": {
+          "jql": "=project = \"FROZ\"\nAND issuetype = \"Bug\"\nAND status != Done"
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        -5488,
+        3072
+      ],
+      "id": "248aea2a-9e23-4660-9a3c-9e15a9f6beed",
+      "name": "Get many issues1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://lithiaproject.atlassian.net/rest/api/3/issue/{{$('Create an issue').item.json.key}}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "jiraSoftwareCloudApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"fields\": {\n    \"customfield_10140\": {\n      \"id\": \"10061\"\n    }\n  }\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -464,
+        592
+      ],
+      "id": "3692302a-3e29-4283-9eec-16fe8aa45e84",
+      "name": "Add Severity (Critical)",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://lithiaproject.atlassian.net/rest/api/3/issue/{{$('Create an issue').item.json.key}}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "jiraSoftwareCloudApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"fields\": {\n    \"customfield_10140\": {\n      \"id\": \"10060\"\n    }\n  }\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -464,
+        720
+      ],
+      "id": "8b5796e0-b263-4634-b7c0-5a486100d42f",
+      "name": "Add Severity (Major)",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://lithiaproject.atlassian.net/rest/api/3/issue/{{$('Create an issue').item.json.key}}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "jiraSoftwareCloudApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"fields\": {\n    \"customfield_10140\": {\n      \"id\": \"10059\"\n    }\n  }\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -464,
+        864
+      ],
+      "id": "245829b7-e33b-4fff-888c-a15fa9b61831",
+      "name": "Add Severity (Medium)",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://lithiaproject.atlassian.net/rest/api/3/issue/{{$('Create an issue').item.json.key}}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "jiraSoftwareCloudApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"fields\": {\n    \"customfield_10140\": {\n      \"id\": \"10058\"\n    }\n  }\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -464,
+        992
+      ],
+      "id": "4281eb1e-df28-49df-b4bd-8fe32e32f3ff",
+      "name": "Add Severity (Normal)",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://lithiaproject.atlassian.net/rest/api/3/issue/{{$('Create an issue').item.json.key}}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "jiraSoftwareCloudApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"fields\": {\n    \"customfield_10140\": {\n      \"id\": \"10057\"\n    }\n  }\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -464,
+        1120
+      ],
+      "id": "5400eba5-90a4-42ae-9759-a740076e6812",
+      "name": "Add Severity (Minor)",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst msg = data.message || \"\";\n\n// keyword\nconst keywordMatch = msg.match(/Verify\\w+Keyword/);\nconst keyword = keywordMatch ? keywordMatch[0] : \"UNKNOWN\";\n\n// object repository\nconst repoMatch = msg.match(/Object Repository\\/[^\\r\\n']+/);\nconst objectRepo = repoMatch ? repoMatch[0] : \"UNKNOWN\";\n\n// xpath\nconst xpathMatch = msg.match(/By\\.xpath:\\s*(.+?)'/);\nconst xpath = xpathMatch ? xpathMatch[1] : \"UNKNOWN\";\n\n// fingerprint\nconst fingerprint =\n`${data.caseId}|${keyword}|${objectRepo}|${xpath}`;\n\nreturn [{\n  json: {\n    ...data,\n    fingerprint\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4400,
+        608
+      ],
+      "id": "d4767f58-39bb-42af-91f1-9bf4770064ed",
+      "name": "Generate Fingerprint"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -3504,
+        1168
+      ],
+      "id": "e13f8dc6-057f-402a-8e43-01107a15faab",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "GqRgYkr7W7O5KeMU",
+          "name": "Groq account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Create a bug report from this automation test log:\nError Message : \n{{ $('Parse Input').item.json.message }}\n\nTest Steps :\n{{ $('Parse Input').item.json.teststeps }}",
+        "options": {
+          "systemMessage": "# ROLE & OBJECTIVE\nYou are a Senior QA Automation Engineer. Analyze automation error logs and test steps then generate a professional bug report in English. Output MUST be structured JSON only.\n\n---\n\n# INPUT FORMAT\n- testCaseId     : Full test case path and name\n- status         : FAILED | PASSED\n- timestamp      : Execution timestamp\n- url            : URL where the test was executed\n- message        : Full error/failure message with stack trace\n- failed_step    : The specific automation step that failed\n- executed_steps : Array of all steps executed before failure\n\n---\n\n# TEST CASE INTERPRETATION\ntestCaseId is the PRIMARY source of context. Extract:\n- feature     : general domain/module (e.g., \"Item Management\", \"Authentication\")\n- sub_section : specific feature being tested (e.g., \"Add Item\", \"Login\")\n- scenario, input condition, flow sequence\n\nUse executed_steps only as supplementary context to confirm the flow.\nIf testCaseId contains after/before/when/then/with/without — infer prerequisite actions.\n\nExamples:\n- \"TC-008 - Item_Verify Save Button State After Error\" → feature: \"Item Management\", sub_section: \"Add Item\"\n- \"TC-012 - Login_Verify Error Message on Invalid Email\" → feature: \"Authentication\", sub_section: \"Login\"\n\n---\n\n# ERROR CONVERSION RULE\nConvert raw automation errors to user-facing issues. Focus on FIRST failure only.\n\n- element not found = Expected element is not displayed\n- verifyElementVisible failed = Expected message/element is not shown\n- element not clickable = User cannot interact with the element\n- Unable to click on object = User cannot interact with the element\n- timeout = System takes too long to respond\n- StepFailedException = Action could not be completed\n\n---\n\n# PRIORITY & SEVERITY\n\nCore business flows: Login, Registration, Checkout, Payment, Search\nSearch includes ANY search functionality (Item Search, Order Search, etc.)\n\nPriority definitions:\n- Highest = Core flow completely blocked, no workaround\n- High    = Core flow partially impacted, OR data integrity corrupted, OR timeout > 15s\n- Medium  = Non-core feature fails, main journey unaffected, no data risk\n- Low     = Minor edge-case; main flow and data unaffected\n- Lowest  = Cosmetic only; no functional impact\n\nSeverity definitions:\n- Critical = Crash, 500 error, or complete system failure\n- Major    = Sub-section unusable, OR data saved/deleted incorrectly, OR severe perf degradation\n- Medium   = Partial functionality affected; some parts still work\n- Normal   = Validation/feedback missing; no data corruption\n- Minor    = Cosmetic/UI only\n\nIf no rule above matches exactly, reason through the case:\n- Identify whether the failure affects a core or non-core flow.\n- Assess whether data integrity is at risk.\n- Determine how much of the feature is affected.\n- Then select the closest Priority and Severity that reflects the actual business and technical impact.\n\n---\n\n# STEPS TO REPRODUCE\nGenerate 3–5 realistic user actions based on executed_steps.\nMust include: navigation, prerequisite actions, exact input conditions, final trigger.\nDo NOT mention: automation tools, locators, scripts, or object repository paths.\n\n---\n\n# ISSUE TITLE FORMAT\nPattern: \"[Subject] [action/state] [condition]\"\nExamples:\n- \"Save button remains clickable after validation error\"\n- \"Validation message not shown on empty required field\"\nDo NOT use vague titles or include test case IDs.\n\n---\n\n# EXECUTION TIME RULE\nMention execution time ONLY IF error contains \"timeout\" OR duration > 15000ms.\nOtherwise, ignore entirely.\n\n---\n\n# LABELS\nAlways include: Bug, Automation, + component label from feature field.\nExamples: Auth, Checkout, Search, ItemManagement, CategoryManagement\n\n---\n\n# OUTPUT FORMAT\n{\n  \"ticket_title\": {\n    \"feature\": \"String\",\n    \"sub_section\": \"String\",\n    \"issue_title\": \"String\"\n  },\n  \"description\": {\n    \"steps_to_reproduce\": [\"1. ...\", \"2. ...\", \"3. ...\"],\n    \"actual_result\": \"String\",\n    \"expected_result\": \"String\"\n  },\n  \"priority\": \"Highest | High | Medium | Low | Lowest\",\n  \"severity\": \"Critical | Major | Medium | Normal | Minor\",\n  \"labels\": [\"Bug\", \"Automation\", \"Component\"]\n}\n\nOutput JSON ONLY,  no markdown, no explanation outside JSON.\n\n---\n\n# EXAMPLE\nINPUT:\ntestCaseId    : Test Cases/TC-008 - Item_Verify Save Button State After Error\nstatus        : FAILED\nurl           : https://testbed.lithiaproject.site/dashboard\nmessage       : Unable to click on object 'Page_Add Item True/button_Simpan Barang'\nfailed_step   : click(findTestObject(\"Page_Add Item True/button_Simpan Barang\"))\nexecuted_steps:\n  [0] openBrowser(\"testbed.lithiaproject.site\")\n  [1] click(findTestObject(\"Page_Add Item True/button_Tambah Barang\"))\n  [2] setText(findTestObject(\"Page_Add Item True/input_Nama Barang\"), \"Sosis Kanzler Rasa Keju\")\n  [3] click(findTestObject(\"Page_Add Item True/button_Pilih kategori\"))\n  [4] click(findTestObject(\"Page_Add Item True/div_Dairy\"))\n  [5] setText(findTestObject(\"Page_Add Item True/input_Jumlah Stok\"), \"20\")\n  [6] setText(findTestObject(\"Page_Add Item True/input_Harga Beli\"), \"8000\")\n  [7] setText(findTestObject(\"Page_Add Item True/input_Harga Jual\"), \"10000\")\n\nOUTPUT:\n{\n  \"ticket_title\": {\n    \"feature\": \"Item Management\",\n    \"sub_section\": \"Add Item\",\n    \"issue_title\": \"Save button is not interactable after a validation error is triggered\"\n  },\n  \"description\": {\n    \"steps_to_reproduce\": [\n      \"1. Navigate to the Dashboard page.\",\n      \"2. Click the 'Tambah Barang' button to open the Add Item form.\",\n      \"3. Fill in all required fields: item name, category, stock quantity, purchase price, and selling price.\",\n      \"4. Submit the form in a state that triggers a validation error.\",\n      \"5. Observe the state of the 'Simpan Barang' (Save) button after the error appears.\"\n    ],\n    \"actual_result\": \"The 'Simpan Barang' button cannot be interacted with after a validation error is triggered.\",\n    \"expected_result\": \"The Save button should remain clearly clickable or explicitly disabled with a visual indicator, so the user can re-attempt submission after correcting the error.\"\n  },\n  \"priority\": \"Medium\",\n  \"severity\": \"Normal\",\n  \"labels\": [\"Bug\", \"Automation\", \"ItemManagement\"]\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -3424,
+        928
+      ],
+      "id": "a3aa122e-f996-4a64-a755-ba7101b6aafd",
+      "name": "AI Agent",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a0f815e1-382b-43b8-8cfc-51288b2fe069",
+              "leftValue": "={{$json.id}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -3904,
+        608
+      ],
+      "id": "c6685dff-0953-424c-b38b-58da5e9a6ccc",
+      "name": "Check Duplicate"
+    },
+    {
+      "parameters": {
+        "project": {
+          "__rl": true,
+          "value": "10001",
+          "mode": "list",
+          "cachedResultName": "QA Skripsi"
+        },
+        "issueType": {
+          "__rl": true,
+          "value": "10009",
+          "mode": "list",
+          "cachedResultName": "Bug"
+        },
+        "summary": "=[DUPLICATE] {{ $json.fields.summary }}",
+        "additionalFields": {
+          "description": "=This issue is automatically created as a duplicate bug report.\n\nMASTER ISSUE:\n{{ $json.key }}\n\n---\n\nExecution Details\n-----------------\nTest Case:\n{{ $('Parse Input').first().json.caseId }}\n\nExecution Time:\n{{ $('Parse Input').first().json.timestamp }}\n\nStatus:\n{{ $('Parse Input').first().json.status }}\n\n---\n\nDuplicate Fingerprint:\n{{ $('Generate Fingerprint').first().json.strongFingerprint }}\n\n---\n\nRaw Error Log:\n{{ $('Parse Input').first().json.message }}"
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        -4752,
+        3280
+      ],
+      "id": "7bf1fbdc-468d-47b7-a7ec-7aa60bd4e864",
+      "name": "Create issue duplicate",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rawOutput = $input.first().json.output; \n\nconst cleanOutput = rawOutput.replace(/^```json\\s*/i, \"\").replace(/^```\\s*/i, \"\").replace(/\\s*```$/, \"\");\n\nlet jsonData;\ntry {\n    jsonData = JSON.parse(cleanOutput);\n} catch (error) {\n    jsonData = { error: \"Gagal parsing JSON\", raw: cleanOutput };\n}\n\nreturn { json: jsonData };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3104,
+        928
+      ],
+      "id": "af25394f-2392-4a9a-99ba-35e5280217f0",
+      "name": "Parse Output AI"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://lithiaproject.atlassian.net/rest/api/3/issue/{{$('Create an issue').item.json.key}}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "jiraSoftwareCloudApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"fields\": {\n    \"customfield_10141\": \"{{ $('Generate Fingerprint').item.json.fingerprint }}\"\n  }\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1552,
+        944
+      ],
+      "id": "aca8beec-5c35-47a0-8657-b708383e63e6",
+      "name": "Save Fingerprint",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://lithiaproject.atlassian.net/rest/api/3/search",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "jiraSoftwareCloudApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -5328,
+        3056
+      ],
+      "id": "774e7f64-324f-4a68-ae12-e7fe64457243",
+      "name": "HTTP Request1",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const issues = $input.first().json.issues || [];\n\nreturn issues.map(issue => ({\n  json: issue\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4928,
+        3056
+      ],
+      "id": "391faf8a-27f7-42c2-a1a6-ea8bdc0776da",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "returnAll": true,
+        "options": {
+          "jql": "=project = \"FROZ\"\nAND issuetype = \"Bug\"\nAND status != Done"
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        -4240,
+        608
+      ],
+      "id": "71429fc1-2c71-41d2-a6cd-8189df29a099",
+      "name": "Get many issues",
+      "alwaysOutputData": true,
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const targetFingerprint =\n  $('Generate Fingerprint').first().json.fingerprint;\n\nconst issues = $input.all();\n\nconst duplicates = issues.filter(item =>\n  item.json.fields?.customfield_10141 === targetFingerprint\n);\nreturn duplicates.map(item => ({\n  json: item.json\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4064,
+        608
+      ],
+      "id": "d11d89c3-a9fa-4fc9-985b-3ea1782d9a59",
+      "name": "Find Duplicate",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "issueKey": "={{ $('Create an issue (Duplicate)').item.json.key }}",
+        "updateFields": {
+          "priority": {
+            "__rl": true,
+            "value": "1",
+            "mode": "list",
+            "cachedResultName": "Highest"
+          }
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        -1088,
+        -288
+      ],
+      "id": "27279537-d4be-4941-8e8b-ab5524558280",
+      "name": "Add Priority (Highest)1",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "issueKey": "={{ $('Create an issue (Duplicate)').item.json.key }}",
+        "updateFields": {
+          "priority": {
+            "__rl": true,
+            "value": "2",
+            "mode": "list",
+            "cachedResultName": "High"
+          }
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        -1088,
+        -160
+      ],
+      "id": "bb8b7aa7-1634-4077-a307-0149e12aaa2c",
+      "name": "Add Priority (High)1",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "issueKey": "={{ $('Create an issue (Duplicate)').item.json.key }}",
+        "updateFields": {
+          "priority": {
+            "__rl": true,
+            "value": "3",
+            "mode": "list",
+            "cachedResultName": "Medium"
+          }
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        -1088,
+        -32
+      ],
+      "id": "9c38d48c-4859-48c3-9d76-bdcaff09b545",
+      "name": "Add Priority (Medium)1",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "issueKey": "={{ $('Create an issue (Duplicate)').item.json.key }}",
+        "updateFields": {
+          "priority": {
+            "__rl": true,
+            "value": "4",
+            "mode": "list",
+            "cachedResultName": "Low"
+          }
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        -1088,
+        96
+      ],
+      "id": "36b8cd45-99c8-4f5c-b2d7-d746031afecb",
+      "name": "Add Priority (Low)1",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "issueKey": "={{ $('Create an issue (Duplicate)').item.json.key }}",
+        "updateFields": {
+          "priority": {
+            "__rl": true,
+            "value": "5",
+            "mode": "list",
+            "cachedResultName": "Lowest"
+          }
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        -1088,
+        224
+      ],
+      "id": "84f829a4-ea19-40f9-a0bf-9fa240179b2a",
+      "name": "Add Priority (Lowest)1",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://lithiaproject.atlassian.net/rest/api/3/issue/{{$('Create an issue (Duplicate)').item.json.key}}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "jiraSoftwareCloudApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"fields\": {\n    \"customfield_10140\": {\n      \"id\": \"10061\"\n    }\n  }\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -496,
+        -320
+      ],
+      "id": "1889ec7c-a232-42e7-a25a-aa05f3ec53d7",
+      "name": "Add Severity (Critical)1",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://lithiaproject.atlassian.net/rest/api/3/issue/{{$('Create an issue (Duplicate)').item.json.key}}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "jiraSoftwareCloudApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"fields\": {\n    \"customfield_10140\": {\n      \"id\": \"10060\"\n    }\n  }\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -496,
+        -176
+      ],
+      "id": "33bc3ad3-2318-4720-993b-05b83fadf407",
+      "name": "Add Severity (Major)1",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://lithiaproject.atlassian.net/rest/api/3/issue/{{$('Create an issue (Duplicate)').item.json.key}}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "jiraSoftwareCloudApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"fields\": {\n    \"customfield_10140\": {\n      \"id\": \"10059\"\n    }\n  }\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -496,
+        -32
+      ],
+      "id": "0c8c87da-7e02-4464-8307-2229cd58cffc",
+      "name": "Add Severity (Medium)1",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://lithiaproject.atlassian.net/rest/api/3/issue/{{$('Create an issue (Duplicate)').item.json.key}}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "jiraSoftwareCloudApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"fields\": {\n    \"customfield_10140\": {\n      \"id\": \"10058\"\n    }\n  }\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -496,
+        96
+      ],
+      "id": "4229c177-ddf5-4464-9ac6-1259f1735bd9",
+      "name": "Add Severity (Normal)1",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://lithiaproject.atlassian.net/rest/api/3/issue/{{$('Create an issue (Duplicate)').item.json.key}}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "jiraSoftwareCloudApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"fields\": {\n    \"customfield_10140\": {\n      \"id\": \"10057\"\n    }\n  }\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -496,
+        224
+      ],
+      "id": "1a7c5cf6-03c2-42ef-9435-450288784fdc",
+      "name": "Add Severity (Minor)1",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -3456,
+        240
+      ],
+      "id": "18510276-7cc2-4b12-9a49-eed26d399f59",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "GqRgYkr7W7O5KeMU",
+          "name": "Groq account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "issueAttachment",
+        "issueKey": "={{ $json.key }}"
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        -1776,
+        32
+      ],
+      "id": "006279b4-aaa6-4d1d-a9c0-be6cd58e478d",
+      "name": "Add Attachment/Evidence Duplicate",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://lithiaproject.atlassian.net/rest/api/3/issue/{{$('Create an issue (Duplicate)').item.json.key}}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "jiraSoftwareCloudApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"fields\": {\n    \"customfield_10141\": \"{{ $('Generate Fingerprint').first().json.fingerprint }}\"\n  }\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1568,
+        32
+      ],
+      "id": "1703cd1c-47c6-4059-b689-102e7fd7597f",
+      "name": "Save Fingerprint Duplicate",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Parse Output AI (Duplicate)').item.json.priority }}",
+                    "rightValue": "Highest",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "e04362fc-c797-4bdb-ac84-55428d02269f"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "dab1469f-82c3-490c-ba49-65e68fb90c89",
+                    "leftValue": "={{ $('Parse Output AI (Duplicate)').item.json.priority }}",
+                    "rightValue": "High",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "1a46ad16-7a02-4e14-9842-78e8ddece313",
+                    "leftValue": "={{ $('Parse Output AI (Duplicate)').item.json.priority }}",
+                    "rightValue": "Medium",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "3b855e94-89c4-4146-a9cc-2de8f2891a33",
+                    "leftValue": "={{ $('Parse Output AI (Duplicate)').item.json.priority }}",
+                    "rightValue": "Low",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "22135f6e-fe0c-41d6-9e98-4ca6a07cedd5",
+                    "leftValue": "={{ $('Parse Output AI (Duplicate)').item.json.priority }}",
+                    "rightValue": "Lowest",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -1408,
+        -16
+      ],
+      "id": "0a750a8a-845b-423a-b0d8-c44211b636ce",
+      "name": "Switch Priority (Duplicate)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Ambil output mentah dari AI Agent\n// Pastikan path-nya sesuai, biasanya 'output' atau 'response'\nconst rawOutput = $input.first().json.output; \n\n// 2. Bersihkan tanda Markdown (```json dan ```)\n// Regex ini menghapus ```json di awal dan ``` di akhir\nconst cleanOutput = rawOutput.replace(/^```json\\s*/i, \"\").replace(/^```\\s*/i, \"\").replace(/\\s*```$/, \"\");\n\n// 3. Parse string bersih menjadi JSON Object\nlet jsonData;\ntry {\n    jsonData = JSON.parse(cleanOutput);\n} catch (error) {\n    // Jika masih gagal, kembalikan error agar bisa dicek\n    jsonData = { error: \"Gagal parsing JSON\", raw: cleanOutput };\n}\n\n// 4. Kembalikan data matang\nreturn { json: jsonData };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3152,
+        16
+      ],
+      "id": "52458efe-68fd-43fe-b7e4-ff750b513f90",
+      "name": "Parse Output AI (Duplicate)"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Create a bug report from this automation test log:\n\n{{ $('Parse Input').first().json.message }}",
+        "options": {
+          "systemMessage": "# ROLE & OBJECTIVE\nYou are a Senior QA Automation Engineer. Analyze automation error logs and test steps then generate a professional bug report in English. Output MUST be structured JSON only.\n\n---\n\n# INPUT FORMAT\n- testCaseId     : Full test case path and name\n- status         : FAILED | PASSED\n- timestamp      : Execution timestamp\n- url            : URL where the test was executed\n- message        : Full error/failure message with stack trace\n- failed_step    : The specific automation step that failed\n- executed_steps : Array of all steps executed before failure\n\n---\n\n# TEST CASE INTERPRETATION\ntestCaseId is the PRIMARY source of context. Extract:\n- feature     : general domain/module (e.g., \"Item Management\", \"Authentication\")\n- sub_section : specific feature being tested (e.g., \"Add Item\", \"Login\")\n- scenario, input condition, flow sequence\n\nUse executed_steps only as supplementary context to confirm the flow.\nIf testCaseId contains after/before/when/then/with/without — infer prerequisite actions.\n\nExamples:\n- \"TC-008 - Item_Verify Save Button State After Error\" → feature: \"Item Management\", sub_section: \"Add Item\"\n- \"TC-012 - Login_Verify Error Message on Invalid Email\" → feature: \"Authentication\", sub_section: \"Login\"\n\n---\n\n# ERROR CONVERSION RULE\nConvert raw automation errors to user-facing issues. Focus on FIRST failure only.\n\nelement not found = Expected element is not displayed\nverifyElementVisible failed = Expected message/element is not shown\nelement not clickable = User cannot interact with the element\nUnable to click on object = User cannot interact with the element\ntimeout = System takes too long to respond\nStepFailedException = Action could not be completed\n\n---\n\n# PRIORITY & SEVERITY\n\nCore business flows: Login, Registration, Checkout, Payment, Search\nSearch includes ANY search functionality (Item Search, Order Search, etc.)\n\nPriority definitions:\n- Highest = Core flow completely blocked, no workaround\n- High    = Core flow partially impacted, OR data integrity corrupted, OR timeout > 15s\n- Medium  = Non-core feature fails, main journey unaffected, no data risk\n- Low     = Minor edge-case; main flow and data unaffected\n- Lowest  = Cosmetic only; no functional impact\n\nSeverity definitions:\n- Critical = Crash, 500 error, or complete system failure\n- Major    = Sub-section unusable, OR data saved/deleted incorrectly, OR severe perf degradation\n- Medium   = Partial functionality affected; some parts still work\n- Normal   = Validation/feedback missing; no data corruption\n- Minor    = Cosmetic/UI only\n\nIf no rule above matches exactly, reason through the case:\n- Identify whether the failure affects a core or non-core flow.\n- Assess whether data integrity is at risk.\n- Determine how much of the feature is affected.\n- Then select the closest Priority and Severity that reflects the actual business and technical impact.\n\n---\n\n# STEPS TO REPRODUCE\nGenerate 3–5 realistic user actions based on executed_steps.\nMust include: navigation, prerequisite actions, exact input conditions, final trigger.\nDo NOT mention: automation tools, locators, scripts, or object repository paths.\n\n---\n\n# ISSUE TITLE FORMAT\nPattern: \"[Subject] [action/state] [condition]\"\nExamples:\n- \"Save button remains clickable after validation error\"\n- \"Validation message not shown on empty required field\"\nDo NOT use vague titles or include test case IDs.\n\n---\n\n# EXECUTION TIME RULE\nMention execution time ONLY IF error contains \"timeout\" OR duration > 15000ms.\nOtherwise, ignore entirely.\n\n---\n\n# LABELS\nAlways include: Bug, Automation, + component label from feature field.\nExamples: Auth, Checkout, Search, ItemManagement, CategoryManagement\n\n---\n\n# OUTPUT FORMAT\n{\n  \"ticket_title\": {\n    \"feature\": \"String\",\n    \"sub_section\": \"String\",\n    \"issue_title\": \"String\"\n  },\n  \"description\": {\n    \"steps_to_reproduce\": [\"1. ...\", \"2. ...\", \"3. ...\"],\n    \"actual_result\": \"String\",\n    \"expected_result\": \"String\"\n  },\n  \"priority\": \"Highest | High | Medium | Low | Lowest\",\n  \"severity\": \"Critical | Major | Medium | Normal | Minor\",\n  \"labels\": [\"Bug\", \"Automation\", \"Component\"]\n}\n\nOutput JSON ONLY,  no markdown, no explanation outside JSON.\n\n---\n\n# EXAMPLE\nINPUT:\ntestCaseId    : Test Cases/TC-008 - Item_Verify Save Button State After Error\nstatus        : FAILED\nurl           : https://testbed.lithiaproject.site/dashboard\nmessage       : Unable to click on object 'Page_Add Item True/button_Simpan Barang'\nfailed_step   : click(findTestObject(\"Page_Add Item True/button_Simpan Barang\"))\nexecuted_steps:\n  [0] openBrowser(\"testbed.lithiaproject.site\")\n  [1] click(findTestObject(\"Page_Add Item True/button_Tambah Barang\"))\n  [2] setText(findTestObject(\"Page_Add Item True/input_Nama Barang\"), \"Sosis Kanzler Rasa Keju\")\n  [3] click(findTestObject(\"Page_Add Item True/button_Pilih kategori\"))\n  [4] click(findTestObject(\"Page_Add Item True/div_Dairy\"))\n  [5] setText(findTestObject(\"Page_Add Item True/input_Jumlah Stok\"), \"20\")\n  [6] setText(findTestObject(\"Page_Add Item True/input_Harga Beli\"), \"8000\")\n  [7] setText(findTestObject(\"Page_Add Item True/input_Harga Jual\"), \"10000\")\n\nOUTPUT:\n{\n  \"ticket_title\": {\n    \"feature\": \"Item Management\",\n    \"sub_section\": \"Add Item\",\n    \"issue_title\": \"Save button is not interactable after a validation error is triggered\"\n  },\n  \"description\": {\n    \"steps_to_reproduce\": [\n      \"1. Navigate to the Dashboard page.\",\n      \"2. Click the 'Tambah Barang' button to open the Add Item form.\",\n      \"3. Fill in all required fields: item name, category, stock quantity, purchase price, and selling price.\",\n      \"4. Submit the form in a state that triggers a validation error.\",\n      \"5. Observe the state of the 'Simpan Barang' (Save) button after the error appears.\"\n    ],\n    \"actual_result\": \"The 'Simpan Barang' button cannot be interacted with after a validation error is triggered.\",\n    \"expected_result\": \"The Save button should remain clearly clickable or explicitly disabled with a visual indicator, so the user can re-attempt submission after correcting the error.\"\n  },\n  \"priority\": \"Medium\",\n  \"severity\": \"Normal\",\n  \"labels\": [\"Bug\", \"Automation\", \"ItemManagement\"]\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -3456,
+        16
+      ],
+      "id": "4f101bbe-9c01-467a-92c0-6539790a9467",
+      "name": "AI Agent (Duplicate)",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const base64String = $('Parse Input').first().json.screenshot\n\n// Jika ada data screenshot\nif (base64String) {\n  return [\n    {\n      json: $input.first().json, // Teruskan data JSON asli\n      binary: {\n        data: {\n          data: base64String,\n          mimeType: 'image/png',\n          fileName:  $('Parse Output AI (Duplicate)').first().json.ticket_title.issue_title + '.png'\n        }\n      }\n    }\n  ];\n}\n\nreturn [$input.first()];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2000,
+        32
+      ],
+      "id": "d8ecab69-b4ea-4d80-a15a-0f095e009fcd",
+      "name": "Screenshot Issue (Duplicate)"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Parse Output AI (Duplicate)').item.json.severity }}",
+                    "rightValue": "Critical",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "e04362fc-c797-4bdb-ac84-55428d02269f"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "dab1469f-82c3-490c-ba49-65e68fb90c89",
+                    "leftValue": "={{ $('Parse Output AI (Duplicate)').item.json.severity }}",
+                    "rightValue": "Major",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "1a46ad16-7a02-4e14-9842-78e8ddece313",
+                    "leftValue": "={{ $('Parse Output AI (Duplicate)').item.json.severity }}",
+                    "rightValue": "Medium",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "3b855e94-89c4-4146-a9cc-2de8f2891a33",
+                    "leftValue": "={{ $('Parse Output AI (Duplicate)').item.json.severity }}",
+                    "rightValue": "Normal",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "22135f6e-fe0c-41d6-9e98-4ca6a07cedd5",
+                    "leftValue": "={{ $('Parse Output AI (Duplicate)').item.json.severity }}",
+                    "rightValue": "Minor",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -816,
+        -80
+      ],
+      "id": "d7f53be1-2055-4627-8703-89e54ac99919",
+      "name": "Switch Severity (Duplicte)"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [$input.first()];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3616,
+        16
+      ],
+      "id": "f040565b-bd4f-4de8-84a1-719fa4cff6a2",
+      "name": "Filter Duplicate"
+    },
+    {
+      "parameters": {
+        "project": {
+          "__rl": true,
+          "value": "10034",
+          "mode": "list",
+          "cachedResultName": "Frozeria"
+        },
+        "issueType": {
+          "__rl": true,
+          "value": "10043",
+          "mode": "list",
+          "cachedResultName": "Epic"
+        },
+        "summary": "={{ $json.feature }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        -2368,
+        768
+      ],
+      "id": "500f58b0-f474-4d90-bfdf-42fe9b4e40cb",
+      "name": "Create Parent Issue",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://lithiaproject.atlassian.net/rest/api/3/search/jql",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "jiraSoftwareCloudApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "jql",
+              "value": "project = \"Frozeria\" AND issuetype = Epic"
+            },
+            {
+              "name": "fields",
+              "value": "summary"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -2928,
+        928
+      ],
+      "id": "c02c12f3-49ed-4530-85ec-562e0c01110f",
+      "name": "Get Parent Issue",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const feature = $('Parse Output AI').first().json.ticket_title.feature;\n\nconst issues = $json.issues || [];\n\nconst epic = issues.find(\n  i => i.fields.summary.toLowerCase() === feature.toLowerCase()\n);\n\nreturn [\n  {\n    epicExists: !!epic,\n    epicKey: epic?.key || null,\n    epicId: epic?.id || null,\n    feature\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2752,
+        928
+      ],
+      "id": "9d5c1e5c-2b87-481e-bf0f-ff943d76a027",
+      "name": "Check Parent Exists"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6a67999f-c1d5-4ae0-8bf1-18e2f7d0d31f",
+              "leftValue": "={{ $json.epicExists }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2576,
+        928
+      ],
+      "id": "937438a5-c8f4-457c-a1f3-568548808361",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "project": {
+          "__rl": true,
+          "value": "10001",
+          "mode": "list",
+          "cachedResultName": "QA Skripsi"
+        },
+        "issueType": {
+          "__rl": true,
+          "value": "10009",
+          "mode": "list",
+          "cachedResultName": "Bug"
+        },
+        "summary": "=[{{ $('Parse Output AI').item.json.ticket_title.feature }}] {{ $('Parse Output AI').item.json.ticket_title.sub_section }} - {{ $('Parse Output AI').item.json.ticket_title.issue_title }}",
+        "additionalFields": {
+          "description": "=URL Project :\n{{ $('Webhook Katalon').first().json.body.url }}\n\nSteps to Reproduce\n{{ $('Parse Output AI').item.json.description.steps_to_reproduce\n  .map((step, i) => \n    `${i + 1}. ${step.replace(/^\\d+\\.\\s*/, '')}`\n  )\n  .join('\\n') }}\n\nActual Result\n{{ $('Parse Output AI').item.json.description.actual_result }}\n\nExpected Result\n{{ $('Parse Output AI').item.json.description.expected_result }}"
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        -3632,
+        3152
+      ],
+      "id": "d7334ad7-a7e4-49dd-b4d7-1498a6fd2a1b",
+      "name": "Create an issue1",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://lithiaproject.atlassian.net/rest/api/3/issue",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "jiraSoftwareCloudApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"fields\": {\n    \"project\": {\n      \"key\": \"FROZ\"\n    },\n    \"summary\": \"[{{ $('Parse Output AI').item.json.ticket_title.feature }}] {{ $('Parse Output AI').item.json.ticket_title.sub_section }} - {{ $('Parse Output AI').item.json.ticket_title.issue_title }}\",\n    \"description\": {\n      \"type\": \"doc\",\n      \"version\": 1,\n      \"content\": [\n        {\n          \"type\": \"paragraph\",\n          \"content\": [\n            {\n              \"type\": \"text\",\n              \"text\": \"URL Project: \"\n            },\n            {\n              \"type\": \"text\",\n              \"text\": \"{{ $('Webhook Katalon').first().json.body.url }}\",\n              \"marks\": [\n                {\n                  \"type\": \"link\",\n                  \"attrs\": {\n                    \"href\": \"{{ $('Webhook Katalon').first().json.body.url }}\"\n                  }\n                }\n              ]\n            }\n          ]\n        },\n        {\n          \"type\": \"paragraph\",\n          \"content\": [\n            {\n              \"type\": \"text\",\n              \"text\": \"Steps to Reproduce:\"\n            }\n          ]\n        },\n        {\n          \"type\": \"bulletList\",\n          \"content\": {{ JSON.stringify(\n            $('Parse Output AI')\n              .item\n              .json\n              .description\n              .steps_to_reproduce\n              .map(step => ({\n                type: \"listItem\",\n                content: [\n                  {\n                    type: \"paragraph\",\n                    content: [\n                      {\n                        type: \"text\",\n                        text: step.replace(/^\\\\d+\\\\.\\\\s*/, \"\")\n                      }\n                    ]\n                  }\n                ]\n              }))\n          ) }}\n        },\n        {\n          \"type\": \"paragraph\",\n          \"content\": [\n            {\n              \"type\": \"text\",\n              \"text\": \"Actual Result: {{ $('Parse Output AI').item.json.description.actual_result }}\"\n            }\n          ]\n        },\n        {\n          \"type\": \"paragraph\",\n          \"content\": [\n            {\n              \"type\": \"text\",\n              \"text\": \"Expected Result: {{ $('Parse Output AI').item.json.description.expected_result }}\"\n            }\n          ]\n        }\n      ]\n    },\n    \"issuetype\": {\n      \"name\": \"Bug\"\n    },\n    \"priority\": {\n      \"name\": \"{{ $('Parse Output AI').item.json.priority }}\"\n    },\n    \"parent\": {\n      \"id\": \"{{ $('Check Parent Exists').item.json.epicId || $json.id }}\"\n    },\n        \"labels\": [\n      \"{{ $('Parse Output AI').item.json.ticket_title.feature\n        .toLowerCase()\n        .replace(/[^a-z0-9\\\\s-]/g, '')\n        .replace(/\\\\s+/g, '-')\n        .trim()\n      }}\"\n    ]\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -2144,
+        944
+      ],
+      "id": "b7d57a70-ec4e-48e3-95ce-30c83e7861db",
+      "name": "Create an issue",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://lithiaproject.atlassian.net/rest/api/3/search/jql",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "jiraSoftwareCloudApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "jql",
+              "value": "project = \"Frozeria\" AND issuetype = Epic"
+            },
+            {
+              "name": "fields",
+              "value": "summary"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -2960,
+        16
+      ],
+      "id": "e6bf7665-e107-4b23-937e-c78dcf9ae677",
+      "name": "Get Parent Issue (Duplicate)",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const feature = $('Parse Output AI (Duplicate)').first().json.ticket_title.feature;\n\nconst issues = $json.issues || [];\n\nconst epic = issues.find(\n  i => i.fields.summary.toLowerCase() === feature.toLowerCase()\n);\n\nreturn [\n  {\n    epicExists: !!epic,\n    epicKey: epic?.key || null,\n    epicId: epic?.id || null,\n    feature\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2784,
+        16
+      ],
+      "id": "20b9ff6b-7316-44fe-892d-f48220e5763e",
+      "name": "Check Parent Exists (Duplicate)"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6a67999f-c1d5-4ae0-8bf1-18e2f7d0d31f",
+              "leftValue": "={{ $json.epicExists }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2608,
+        16
+      ],
+      "id": "26f48898-4a28-43bb-8c19-2abfe6e3212b",
+      "name": "If Extists"
+    },
+    {
+      "parameters": {
+        "project": {
+          "__rl": true,
+          "value": "10034",
+          "mode": "list",
+          "cachedResultName": "Frozeria"
+        },
+        "issueType": {
+          "__rl": true,
+          "value": "10043",
+          "mode": "list",
+          "cachedResultName": "Epic"
+        },
+        "summary": "={{ $json.feature }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        -2400,
+        -144
+      ],
+      "id": "64717fa4-9833-4354-9700-e6e6242e858e",
+      "name": "Create Parent Issue (Duplicate)",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://lithiaproject.atlassian.net/rest/api/3/issue",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "jiraSoftwareCloudApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"fields\": {\n    \"project\": {\n      \"key\": \"FROZ\"\n    },\n    \"summary\": \"[DUPLICATE] [{{ $('Parse Output AI (Duplicate)').item.json.ticket_title.feature }}] {{ $('Parse Output AI (Duplicate)').item.json.ticket_title.sub_section }} - {{ $('Parse Output AI (Duplicate)').item.json.ticket_title.issue_title }}\",\n    \"description\": {\n      \"type\": \"doc\",\n      \"version\": 1,\n      \"content\": [\n        {\n          \"type\": \"paragraph\",\n          \"content\": [\n            {\n              \"type\": \"text\",\n              \"text\": \"This issue is automatically created as a duplicate bug report.\"\n            }\n          ]\n        },\n        {\n          \"type\": \"paragraph\",\n          \"content\": [\n            {\n              \"type\": \"text\",\n              \"text\": \"MASTER ISSUE: \"\n            },\n            {\n              \"type\": \"text\",\n              \"text\": \"{{ $('Filter Duplicate').item.json.key }}\",\n              \"marks\": [\n                {\n                  \"type\": \"link\",\n                  \"attrs\": {\n                    \"href\": \"https://lithiaproject.atlassian.net/browse/{{ $('Filter Duplicate').item.json.key }}\"\n                  }\n                }\n              ]\n            }\n          ]\n        },\n        {\n          \"type\": \"paragraph\",\n          \"content\": [\n            {\n              \"type\": \"text\",\n              \"text\": \"URL Project: \"\n            },\n            {\n              \"type\": \"text\",\n              \"text\": \"{{ $('Webhook Katalon').first().json.body.url }}\",\n              \"marks\": [\n                {\n                  \"type\": \"link\",\n                  \"attrs\": {\n                    \"href\": \"{{ $('Webhook Katalon').first().json.body.url }}\"\n                  }\n                }\n              ]\n            }\n          ]\n        },\n        {\n          \"type\": \"paragraph\",\n          \"content\": [\n            {\n              \"type\": \"text\",\n              \"text\": \"Steps to Reproduce:\"\n            }\n          ]\n        },\n        {\n          \"type\": \"bulletList\",\n          \"content\": {{ JSON.stringify(\n            $('Parse Output AI (Duplicate)')\n              .item\n              .json\n              .description\n              .steps_to_reproduce\n              .map(step => ({\n                type: \"listItem\",\n                content: [\n                  {\n                    type: \"paragraph\",\n                    content: [\n                      {\n                        type: \"text\",\n                        text: step.replace(/^\\\\d+\\\\.\\\\s*/, \"\")\n                      }\n                    ]\n                  }\n                ]\n              }))\n          ) }}\n        },\n        {\n          \"type\": \"paragraph\",\n          \"content\": [\n            {\n              \"type\": \"text\",\n              \"text\": \"Actual Result: {{ $('Parse Output AI (Duplicate)').item.json.description.actual_result }}\"\n            }\n          ]\n        },\n        {\n          \"type\": \"paragraph\",\n          \"content\": [\n            {\n              \"type\": \"text\",\n              \"text\": \"Expected Result: {{ $('Parse Output AI (Duplicate)').item.json.description.expected_result }}\"\n            }\n          ]\n        }\n      ]\n    },\n    \"issuetype\": {\n      \"name\": \"Bug\"\n    },\n    \"priority\": {\n      \"name\": \"{{ $('Parse Output AI (Duplicate)').item.json.priority }}\"\n    },\n    \"parent\": {\n      \"id\": \"{{ $('Check Parent Exists (Duplicate)').item.json.epicId || $json.id }}\"\n    },\n    \"labels\": [\n      \"{{ $('Parse Output AI (Duplicate)').item.json.ticket_title.feature\n        .toLowerCase()\n        .replace(/[^a-z0-9\\\\s-]/g, '')\n        .replace(/\\\\s+/g, '-')\n        .trim()\n      }}\"\n    ]\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -2176,
+        32
+      ],
+      "id": "663763e1-9380-4436-b99b-d5873a89927b",
+      "name": "Create an issue (Duplicate)",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "pJmvA6CkbW7QBevu",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook Katalon": {
+      "main": [
+        [
+          {
+            "node": "Parse Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Input": {
+      "main": [
+        [
+          {
+            "node": "Generate Fingerprint",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Screenshot Issue": {
+      "main": [
+        [
+          {
+            "node": "Add Attachment/Evidence",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Priority": {
+      "main": [
+        [
+          {
+            "node": "Add Priority (Highest)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add Priority (High)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add Priority (Medium)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add Priority (Low)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add Priority (Lowest)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Priority (Highest)": {
+      "main": [
+        [
+          {
+            "node": "Switch Severity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Priority (High)": {
+      "main": [
+        [
+          {
+            "node": "Switch Severity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Priority (Medium)": {
+      "main": [
+        [
+          {
+            "node": "Switch Severity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Priority (Low)": {
+      "main": [
+        [
+          {
+            "node": "Switch Severity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Priority (Lowest)": {
+      "main": [
+        [
+          {
+            "node": "Switch Severity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Attachment/Evidence": {
+      "main": [
+        [
+          {
+            "node": "Save Fingerprint",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Severity": {
+      "main": [
+        [
+          {
+            "node": "Add Severity (Critical)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add Severity (Major)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add Severity (Medium)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add Severity (Normal)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add Severity (Minor)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Fingerprint": {
+      "main": [
+        [
+          {
+            "node": "Get many issues",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Parse Output AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Duplicate": {
+      "main": [
+        [
+          {
+            "node": "Filter Duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Output AI": {
+      "main": [
+        [
+          {
+            "node": "Get Parent Issue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Fingerprint": {
+      "main": [
+        [
+          {
+            "node": "Switch Priority",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many issues": {
+      "main": [
+        [
+          {
+            "node": "Find Duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Duplicate": {
+      "main": [
+        [
+          {
+            "node": "Check Duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Priority (Highest)1": {
+      "main": [
+        [
+          {
+            "node": "Switch Severity (Duplicte)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Priority (High)1": {
+      "main": [
+        [
+          {
+            "node": "Switch Severity (Duplicte)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Priority (Medium)1": {
+      "main": [
+        [
+          {
+            "node": "Switch Severity (Duplicte)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Priority (Low)1": {
+      "main": [
+        [
+          {
+            "node": "Switch Severity (Duplicte)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Priority (Lowest)1": {
+      "main": [
+        [
+          {
+            "node": "Switch Severity (Duplicte)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent (Duplicate)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Attachment/Evidence Duplicate": {
+      "main": [
+        [
+          {
+            "node": "Save Fingerprint Duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Fingerprint Duplicate": {
+      "main": [
+        [
+          {
+            "node": "Switch Priority (Duplicate)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Priority (Duplicate)": {
+      "main": [
+        [
+          {
+            "node": "Add Priority (Highest)1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add Priority (High)1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add Priority (Medium)1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add Priority (Low)1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add Priority (Lowest)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Output AI (Duplicate)": {
+      "main": [
+        [
+          {
+            "node": "Get Parent Issue (Duplicate)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent (Duplicate)": {
+      "main": [
+        [
+          {
+            "node": "Parse Output AI (Duplicate)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Screenshot Issue (Duplicate)": {
+      "main": [
+        [
+          {
+            "node": "Add Attachment/Evidence Duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Severity (Duplicte)": {
+      "main": [
+        [
+          {
+            "node": "Add Severity (Critical)1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add Severity (Major)1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add Severity (Medium)1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add Severity (Normal)1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add Severity (Minor)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Duplicate": {
+      "main": [
+        [
+          {
+            "node": "AI Agent (Duplicate)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Parent Issue": {
+      "main": [
+        [
+          {
+            "node": "Create an issue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Parent Issue": {
+      "main": [
+        [
+          {
+            "node": "Check Parent Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Parent Exists": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Create Parent Issue",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create an issue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an issue": {
+      "main": [
+        [
+          {
+            "node": "Screenshot Issue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Parent Issue (Duplicate)": {
+      "main": [
+        [
+          {
+            "node": "Check Parent Exists (Duplicate)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Parent Exists (Duplicate)": {
+      "main": [
+        [
+          {
+            "node": "If Extists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Extists": {
+      "main": [
+        [
+          {
+            "node": "Create Parent Issue (Duplicate)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create an issue (Duplicate)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Parent Issue (Duplicate)": {
+      "main": [
+        [
+          {
+            "node": "Create an issue (Duplicate)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an issue (Duplicate)": {
+      "main": [
+        [
+          {
+            "node": "Screenshot Issue (Duplicate)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "84a1c149-969e-47f8-bba0-04057d8892fa",
+  "meta": {
+    "instanceId": "861b093e4a6c591f652438f3e2092169f8ce6cf9a219bc1527a264c0469e3d12"
+  },
+  "id": "ajYqecWhHcAhR2yz",
+  "tags": []
+}

@@ -1,17 +1,18 @@
-version: "3.8"
-
 services:
   n8n:
-    image: n8nio/n8n
-    container_name: n8n
-    restart: unless-stopped
+    image: n8nio/n8n:latest
+    container_name: n8n-test
+    restart: always
     ports:
       - "5678:5678"
     environment:
-      - N8N_BASIC_AUTH_ACTIVE=true
-      - N8N_BASIC_AUTH_USER=[USERNAME_ANDA]
-      - N8N_BASIC_AUTH_PASSWORD=[PASSWORD_ANDA]
-      - WEBHOOK_URL=http://[IP_PUBLIK_VPS]:5678/
+      - N8N_ENCRYPTION_KEY=[YOUR_ENCRYPTION_KEY]
+      - N8N_HOST=[YOUR_HOST]
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://[YOUR_HOST]:5678/
+      - N8N_SECURE_COOKIE=false
+      - N8N_TRUST_PROXY=true
       - GENERIC_TIMEZONE=Asia/Jakarta
       - TZ=Asia/Jakarta
     volumes:

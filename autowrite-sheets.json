@@ -1,0 +1,400 @@
+{
+  "updatedAt": "2026-07-15T19:03:17.766Z",
+  "createdAt": "2026-07-15T19:03:17.766Z",
+  "name": "Auto Bug Reporting (Spreadsheet)",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "const req = items[0].json;\nconst input = req.body || {};\n\nreturn [\n  {\n    json: {\n      caseId: input.testCaseId ?? \"Unknown Test Case\",\n      status: input.status ?? \"UNKNOWN\",\n      message: input.message ?? \"\",\n      teststeps: input.executed_steps\n        .map((step, index) => `${index + 1}. ${step}`)\n        .join('\\n') ?? \"\",\n      screenshot: input.screenshot_base64 ?? \"\",\n      timestamp: input.timestamp ?? new Date().toISOString(),\n      url: input.url ?? \"\",\n\n      steps: input.message \n        ? input.message.match(/Step \\d+:.+/g) || [] \n        : []\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4144,
+        1072
+      ],
+      "id": "84c8075b-3d9b-4f89-ac1f-152d3db74a2f",
+      "name": "Parse Input"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "bug-report",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -4368,
+        1072
+      ],
+      "id": "4c4c8d2a-3608-4854-8ac3-c2a06f4390a9",
+      "name": "Webhook Katalon",
+      "webhookId": "9e2f7bdb-a98d-4d0d-9af4-af67c56490c3"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Create a bug report from this automation test log:\nError Message : \n{{ $('Parse Input').item.json.message }}\n\nTest Steps :\n{{ $('Parse Input').item.json.teststeps }}",
+        "options": {
+          "systemMessage": "# ROLE & OBJECTIVE\nYou are a Senior QA Automation Engineer. Analyze automation error logs and test steps then generate a professional bug report in English. Output MUST be structured JSON only.\n\n---\n\n# INPUT FORMAT\n- testCaseId     : Full test case path and name\n- status         : FAILED | PASSED\n- timestamp      : Execution timestamp\n- url            : URL where the test was executed\n- message        : Full error/failure message with stack trace\n- failed_step    : The specific automation step that failed\n- executed_steps : Array of all steps executed before failure\n\n---\n\n# TEST CASE INTERPRETATION\ntestCaseId is the PRIMARY source of context. Extract:\n- feature     : general domain/module (e.g., \"Item Management\", \"Authentication\")\n- sub_section : specific feature being tested (e.g., \"Add Item\", \"Login\")\n- scenario, input condition, flow sequence\n\nUse executed_steps only as supplementary context to confirm the flow.\nIf testCaseId contains after/before/when/then/with/without \u2014 infer prerequisite actions.\n\nExamples:\n- \"TC-008 - Item_Verify Save Button State After Error\" \u2192 feature: \"Item Management\", sub_section: \"Add Item\"\n- \"TC-012 - Login_Verify Error Message on Invalid Email\" \u2192 feature: \"Authentication\", sub_section: \"Login\"\n\n---\n\n# ERROR CONVERSION RULE\nConvert raw automation errors to user-facing issues. Focus on FIRST failure only.\n\n- element not found = Expected element is not displayed\n- verifyElementVisible failed = Expected message/element is not shown\n- element not clickable = User cannot interact with the element\n- Unable to click on object = User cannot interact with the element\n- timeout = System takes too long to respond\n- StepFailedException = Action could not be completed\n\n---\n\n# PRIORITY & SEVERITY\n\nCore business flows: Login, Registration, Checkout, Payment, Search\nSearch includes ANY search functionality (Item Search, Order Search, etc.)\n\nPriority definitions:\n- Highest = Core flow completely blocked, no workaround\n- High    = Core flow partially impacted, OR data integrity corrupted, OR timeout > 15s\n- Medium  = Non-core feature fails, main journey unaffected, no data risk\n- Low     = Minor edge-case; main flow and data unaffected\n- Lowest  = Cosmetic only; no functional impact\n\nSeverity definitions:\n- Critical = Crash, 500 error, or complete system failure\n- Major    = Sub-section unusable, OR data saved/deleted incorrectly, OR severe perf degradation\n- Medium   = Partial functionality affected; some parts still work\n- Normal   = Validation/feedback missing; no data corruption\n- Minor    = Cosmetic/UI only\n\nIf no rule above matches exactly, reason through the case:\n- Identify whether the failure affects a core or non-core flow.\n- Assess whether data integrity is at risk.\n- Determine how much of the feature is affected.\n- Then select the closest Priority and Severity that reflects the actual business and technical impact.\n\n---\n\n# STEPS TO REPRODUCE\nGenerate 3\u20135 realistic user actions based on executed_steps.\nMust include: navigation, prerequisite actions, exact input conditions, final trigger.\nDo NOT mention: automation tools, locators, scripts, or object repository paths.\n\n---\n\n# ISSUE TITLE FORMAT\nPattern: \"[Subject] [action/state] [condition]\"\nExamples:\n- \"Save button remains clickable after validation error\"\n- \"Validation message not shown on empty required field\"\nDo NOT use vague titles or include test case IDs.\n\n---\n\n# EXECUTION TIME RULE\nMention execution time ONLY IF error contains \"timeout\" OR duration > 15000ms.\nOtherwise, ignore entirely.\n\n---\n\n# LABELS\nAlways include: Bug, Automation, + component label from feature field.\nExamples: Auth, Checkout, Search, ItemManagement, CategoryManagement\n\n---\n\n# OUTPUT FORMAT\n{\n  \"ticket_title\": {\n    \"feature\": \"String\",\n    \"sub_section\": \"String\",\n    \"issue_title\": \"String\"\n  },\n  \"description\": {\n    \"steps_to_reproduce\": [\"1. ...\", \"2. ...\", \"3. ...\"],\n    \"actual_result\": \"String\",\n    \"expected_result\": \"String\"\n  },\n  \"priority\": \"Highest | High | Medium | Low | Lowest\",\n  \"severity\": \"Critical | Major | Medium | Normal | Minor\",\n  \"labels\": [\"Bug\", \"Automation\", \"Component\"]\n}\n\nOutput JSON ONLY,  no markdown, no explanation outside JSON.\n\n---\n\n# EXAMPLE\nINPUT:\ntestCaseId    : Test Cases/TC-008 - Item_Verify Save Button State After Error\nstatus        : FAILED\nurl           : https://testbed.lithiaproject.site/dashboard\nmessage       : Unable to click on object 'Page_Add Item True/button_Simpan Barang'\nfailed_step   : click(findTestObject(\"Page_Add Item True/button_Simpan Barang\"))\nexecuted_steps:\n  [0] openBrowser(\"testbed.lithiaproject.site\")\n  [1] click(findTestObject(\"Page_Add Item True/button_Tambah Barang\"))\n  [2] setText(findTestObject(\"Page_Add Item True/input_Nama Barang\"), \"Sosis Kanzler Rasa Keju\")\n  [3] click(findTestObject(\"Page_Add Item True/button_Pilih kategori\"))\n  [4] click(findTestObject(\"Page_Add Item True/div_Dairy\"))\n  [5] setText(findTestObject(\"Page_Add Item True/input_Jumlah Stok\"), \"20\")\n  [6] setText(findTestObject(\"Page_Add Item True/input_Harga Beli\"), \"8000\")\n  [7] setText(findTestObject(\"Page_Add Item True/input_Harga Jual\"), \"10000\")\n\nOUTPUT:\n{\n  \"ticket_title\": {\n    \"feature\": \"Item Management\",\n    \"sub_section\": \"Add Item\",\n    \"issue_title\": \"Save button is not interactable after a validation error is triggered\"\n  },\n  \"description\": {\n    \"steps_to_reproduce\": [\n      \"1. Navigate to the Dashboard page.\",\n      \"2. Click the 'Tambah Barang' button to open the Add Item form.\",\n      \"3. Fill in all required fields: item name, category, stock quantity, purchase price, and selling price.\",\n      \"4. Submit the form in a state that triggers a validation error.\",\n      \"5. Observe the state of the 'Simpan Barang' (Save) button after the error appears.\"\n    ],\n    \"actual_result\": \"The 'Simpan Barang' button cannot be interacted with after a validation error is triggered.\",\n    \"expected_result\": \"The Save button should remain clearly clickable or explicitly disabled with a visual indicator, so the user can re-attempt submission after correcting the error.\"\n  },\n  \"priority\": \"Medium\",\n  \"severity\": \"Normal\",\n  \"labels\": [\"Bug\", \"Automation\", \"ItemManagement\"]\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -3920,
+        1072
+      ],
+      "id": "18aed40c-586a-4887-830c-1128c08466cf",
+      "name": "AI Agent",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const rawOutput = $input.first().json.output; \n\nconst cleanOutput = rawOutput.replace(/^```json\\s*/i, \"\").replace(/^```\\s*/i, \"\").replace(/\\s*```$/, \"\");\n\nlet jsonData;\ntry {\n    jsonData = JSON.parse(cleanOutput);\n} catch (error) {\n    jsonData = { error: \"Gagal parsing JSON\", raw: cleanOutput };\n}\n\nreturn { json: jsonData };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3568,
+        1072
+      ],
+      "id": "945134d1-db92-439d-9a1c-cd1f1c75efdf",
+      "name": "Parse Output AI"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -3856,
+        1296
+      ],
+      "id": "a035f0c2-e096-4b62-a5ef-1bc48a8d09c2",
+      "name": "Groq Chat Model"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst msg = data.message || \"\";\n\n// keyword\nconst keywordMatch = msg.match(/Verify\\w+Keyword/);\nconst keyword = keywordMatch ? keywordMatch[0] : \"UNKNOWN\";\n\n// object repository\nconst repoMatch = msg.match(/Object Repository\\/[^\\r\\n']+/);\nconst objectRepo = repoMatch ? repoMatch[0] : \"UNKNOWN\";\n\n// xpath\nconst xpathMatch = msg.match(/By\\.xpath:\\s*(.+?)'/);\nconst xpath = xpathMatch ? xpathMatch[1] : \"UNKNOWN\";\n\n// fingerprint\nconst fingerprint =\n`${data.caseId}|${keyword}|${objectRepo}|${xpath}`;\n\nreturn [{\n  json: {\n    ...data,\n    fingerprint\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3200,
+        1072
+      ],
+      "id": "f160072f-315e-4776-b534-9b8ad9f474b0",
+      "name": "Generate Fingerprint"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "documentId": "1rH7AXJq_cO_tbMqAYv6lEFgWZEg8ILbShkXcCDgSLXA",
+        "sheetName": "Index",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "A": "Fingerprint",
+            "B": "First Seen",
+            "C": "Reports Row"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -2976,
+        1072
+      ],
+      "id": "read-index-d9ea27f1",
+      "name": "Read Index"
+    },
+    {
+      "parameters": {
+        "jsCode": "const targetFingerprint = $('Generate Fingerprint').first().json.fingerprint;\nconst existing = $input.all();\nconst match = existing.find(item => item.json.Fingerprint === targetFingerprint);\n\nif (match) {\n  // Duplicate found - output to branch 0\n  return [{\n    json: {\n      isDuplicate: true,\n      fingerprint: targetFingerprint,\n      existingRow: match.json.Row || ''\n    }\n  }];\n} else {\n  // New - output to branch 1\n  return [{\n    json: {\n      isDuplicate: false,\n      fingerprint: targetFingerprint\n    }\n  }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2752,
+        1072
+      ],
+      "id": "check-dup-6a4953f7",
+      "name": "Check Duplicate"
+    },
+    {
+      "parameters": {
+        "jsCode": "const parseInput = $('Parse Input').first().json;\nconst aiOutput = $('Parse Output AI').first().json;\nconst caseId = parseInput.caseId || \"Unknown\";\nconst msg = parseInput.message || \"\";\nconst keywordMatch = msg.match(/Verify\\w+Keyword/);\nconst keyword = keywordMatch ? keywordMatch[0] : \"UNKNOWN\";\nconst repoMatch = msg.match(/Object Repository\\/[^\\r\\n']+/);\nconst objectRepo = repoMatch ? repoMatch[0] : \"UNKNOWN\";\nconst xpathMatch = msg.match(/By\\.xpath:\\s*(.+?)'/);\nconst xpath = xpathMatch ? xpathMatch[1] : \"UNKNOWN\";\nconst fingerprint = caseId + '|' + keyword + '|' + objectRepo + '|' + xpath;\nconst steps = (aiOutput.description?.steps_to_reproduce || []).join('\\n');\nconst row = [\n  new Date().toISOString().replace('T', ' ').substring(0, 19),\n  caseId,\n  aiOutput.ticket_title?.feature || \"\",\n  aiOutput.ticket_title?.sub_section || \"\",\n  aiOutput.ticket_title?.issue_title || \"\",\n  aiOutput.priority || \"\",\n  aiOutput.severity || \"\",\n  steps,\n  aiOutput.description?.expected_result || \"\",\n  aiOutput.description?.actual_result || \"\",\n  fingerprint,\n  \"New\",\n  \"\",\n  parseInput.url || \"\",\n  msg\n];\nreturn [{json: {row: row, fingerprint: fingerprint}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1600,
+        1072
+      ],
+      "id": "fmt-row-a6ba9601",
+      "name": "Format Row"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": "1rH7AXJq_cO_tbMqAYv6lEFgWZEg8ILbShkXcCDgSLXA",
+        "sheetName": "Reports",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "A": "={{ $json.row[0] }}",
+            "B": "={{ $json.row[1] }}",
+            "C": "={{ $json.row[2] }}",
+            "D": "={{ $json.row[3] }}",
+            "E": "={{ $json.row[4] }}",
+            "F": "={{ $json.row[5] }}",
+            "G": "={{ $json.row[6] }}",
+            "H": "={{ $json.row[7] }}",
+            "I": "={{ $json.row[8] }}",
+            "J": "={{ $json.row[9] }}",
+            "K": "={{ $json.row[10] }}",
+            "L": "={{ $json.row[11] }}",
+            "M": "={{ $json.row[12] }}",
+            "N": "={{ $json.row[13] }}",
+            "O": "={{ $json.row[14] }}"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -1376,
+        1072
+      ],
+      "id": "gsheet-append-1e6dd51b",
+      "name": "Append to Sheet"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": "1rH7AXJq_cO_tbMqAYv6lEFgWZEg8ILbShkXcCDgSLXA",
+        "sheetName": "Index",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "A": "={{ $json.fingerprint }}",
+            "B": "={{ $now }}",
+            "C": "="
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -1152,
+        1072
+      ],
+      "id": "gsheet-index-04751509",
+      "name": "Update Index"
+    },
+    {
+      "parameters": {
+        "jsCode": "const parseInput = $('Parse Input').first().json;\nconst aiOutput = $('Parse Output AI').first().json;\nconst dupInfo = $('Check Duplicate').first().json;\nconst caseId = parseInput.caseId || \"Unknown\";\nconst msg = parseInput.message || \"\";\nconst keywordMatch = msg.match(/Verify\\w+Keyword/);\nconst keyword = keywordMatch ? keywordMatch[0] : \"UNKNOWN\";\nconst repoMatch = msg.match(/Object Repository\\/[^\\r\\n']+/);\nconst objectRepo = repoMatch ? repoMatch[0] : \"UNKNOWN\";\nconst xpathMatch = msg.match(/By\\.xpath:\\s*(.+?)'/);\nconst xpath = xpathMatch ? xpathMatch[1] : \"UNKNOWN\";\nconst fingerprint = caseId + '|' + keyword + '|' + objectRepo + '|' + xpath;\nconst steps = (aiOutput.description?.steps_to_reproduce || []).join('\\n');\nconst row = [\n  new Date().toISOString().replace('T', ' ').substring(0, 19),\n  caseId,\n  aiOutput.ticket_title?.feature || \"\",\n  aiOutput.ticket_title?.sub_section || \"\",\n  aiOutput.ticket_title?.issue_title || \"\",\n  aiOutput.priority || \"\",\n  aiOutput.severity || \"\",\n  steps,\n  aiOutput.description?.expected_result || \"\",\n  aiOutput.description?.actual_result || \"\",\n  fingerprint,\n  \"Duplicate\",\n  dupInfo.existingRow || \"\",\n  parseInput.url || \"\",\n  msg\n];\nreturn [{json: {row: row}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1376,
+        784
+      ],
+      "id": "mark-dup-11e3ae01",
+      "name": "Mark Duplicate"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": "1rH7AXJq_cO_tbMqAYv6lEFgWZEg8ILbShkXcCDgSLXA",
+        "sheetName": "Reports",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "A": "={{ $json.row[0] }}",
+            "B": "={{ $json.row[1] }}",
+            "C": "={{ $json.row[2] }}",
+            "D": "={{ $json.row[3] }}",
+            "E": "={{ $json.row[4] }}",
+            "F": "={{ $json.row[5] }}",
+            "G": "={{ $json.row[6] }}",
+            "H": "={{ $json.row[7] }}",
+            "I": "={{ $json.row[8] }}",
+            "J": "={{ $json.row[9] }}",
+            "K": "={{ $json.row[10] }}",
+            "L": "={{ $json.row[11] }}",
+            "M": "={{ $json.row[12] }}",
+            "N": "={{ $json.row[13] }}",
+            "O": "={{ $json.row[14] }}"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -1152,
+        784
+      ],
+      "id": "gsheet-dup-74964d01",
+      "name": "Append Dup"
+    }
+  ],
+  "connections": {
+    "Webhook Katalon": {
+      "main": [
+        [
+          {
+            "node": "Parse Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Input": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Parse Output AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Output AI": {
+      "main": [
+        [
+          {
+            "node": "Generate Fingerprint",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Fingerprint": {
+      "main": [
+        [
+          {
+            "node": "Read Index",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Index": {
+      "main": [
+        [
+          {
+            "node": "Check Duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Duplicate": {
+      "main": [
+        [
+          {
+            "node": "Mark Duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Duplicate": {
+      "main": [
+        [
+          {
+            "node": "Append Dup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Dup": {
+      "main": [
+        []
+      ]
+    },
+    "Format Row": {
+      "main": [
+        [
+          {
+            "node": "Append to Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append to Sheet": {
+      "main": [
+        [
+          {
+            "node": "Update Index",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Index": {
+      "main": [
+        []
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}
